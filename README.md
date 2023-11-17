@@ -1,92 +1,54 @@
-# Pig and Hive Data analysis on Hadoop
+# CA4022- Vehicle Energy Dataset Analysis using Apache Pig and Hive
 
+#Thomas Baltazar
 
+## Introduction
+My analysis using Apache PIG and Hive on WSL was carried out on the Vehicle energy dataset (VED). The VED is a large-scale dataset for fuel and energy use of a diverse range of vehicles in the real world. It contains data from 383 cars (264 gasoline vehicles, 92 HEVs, and 27 PHEV/EVs). It includes Dynamic Data, which is time-stamped driving records and information on the 383 vehicles from Nov 2017 - Nov 2018. It consists of 2 large 7z files VED_DynamicData_Part1.7z and VED_DynamicData_Part2.7z. VED also contains Static Data, including two Excel files "VED_Static_Data_ICE&HEV.xlsx" and "VED_Static_Data_PHEV&EV.xlsx", containing information about each of the 383 vehicles used.
 
-## Getting started
+## Cleaning the Data
+The two 7z files were downloaded to my local machine, where they needed to be unzipped using 7-Zip. Once extracted, I was left with 2 folders, each containing 26 CSV files representing 1 week of dynamic data, each with roughly 500,000 rows. These folders were then moved from my local machine to my WSL for cleaning.
 
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
+Before continuing with the analysis, I cleaned the data using Apache PIG. I created a `Dynamic_cleaning.pig` script to clean the data, focusing on a subsection of the Dynamic data files from Nov 2017. The cleaning involved loading the data, specifying column types, removing headers, replacing "NaN" values, and removing unnecessary columns. The cleaned data was combined into one file for analysis.
 
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
+Static data was processed using a similar approach. The two static_data Excel files were converted to CSV for easier processing by Pig. The cleaning involved removing headers, replacing "No data" in the `generalized_weight` column, aligning column names, and merging the two cleaned static files into one CSV file.
 
-## Add your files
+## Querying the Data
+### Simple Pig & Hive Queries
+I performed basic Pig & Hive queries on the cleaned data using `PIG_queries.pig` and `Simple_Hive_queries.hql` files. Two queries were executed for both Pig and Hive to calculate the max and average speed for each car in descending order.
 
-- [ ] [Create](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#create-a-file) or [upload](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#upload-a-file) files
-- [ ] [Add files using the command line](https://docs.gitlab.com/ee/gitlab-basics/add-file.html#add-a-file-using-the-command-line) or push an existing Git repository with the following command:
+(a) Pig query results | (b) Hive query results
+--- | ---
+VehID, Max_Speed | VehID, Max_Speed
+... | ...
+The fastest speed recorded was 146 km per hour by Vehicle number 203, an automatic ICE petrol/diesel vehicle.
 
-```
-cd existing_repo
-git remote add origin https://gitlab.computing.dcu.ie/baltazt2/pig-and-hive-data-analysis-on-hadoop.git
-git branch -M main
-git push -uf origin main
-```
+### Complex Hive Queries
+#### Query with Aggregate Function
+I calculated the total vehicle auxiliary power used for air conditioning and heating in watts for each car for the month of Nov in descending order using the Hive SUM() function.
 
-## Integrate with your tools
+Top 5 results:
 
-- [ ] [Set up project integrations](https://gitlab.computing.dcu.ie/baltazt2/pig-and-hive-data-analysis-on-hadoop/-/settings/integrations)
+VehID, total_power_consumption
 
-## Collaborate with your team
+Vehicle No. 455, an EV, expended the most power on Air conditioning and heating, 1.822045E7 watts.
 
-- [ ] [Invite team members and collaborators](https://docs.gitlab.com/ee/user/project/members/)
-- [ ] [Create a new merge request](https://docs.gitlab.com/ee/user/project/merge_requests/creating_merge_requests.html)
-- [ ] [Automatically close issues from merge requests](https://docs.gitlab.com/ee/user/project/issues/managing_issues.html#closing-issues-automatically)
-- [ ] [Enable merge request approvals](https://docs.gitlab.com/ee/user/project/merge_requests/approvals/)
-- [ ] [Set auto-merge](https://docs.gitlab.com/ee/user/project/merge_requests/merge_when_pipeline_succeeds.html)
+#### Query using JOIN Statement
+I performed a join on the `cleaned_dynamic` data table and `cleaned_static` data table to compare the average speed of four different engine types: ICE, EV, PHEV, and HEV.
 
-## Test and Deploy
+Results:
 
-Use the built-in continuous integration in GitLab.
+Eng_type, Avg_Speed, Fuel_LperH
 
-- [ ] [Get started with GitLab CI/CD](https://docs.gitlab.com/ee/ci/quick_start/index.html)
-- [ ] [Analyze your code for known vulnerabilities with Static Application Security Testing(SAST)](https://docs.gitlab.com/ee/user/application_security/sast/)
-- [ ] [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/ee/topics/autodevops/requirements.html)
-- [ ] [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/ee/user/clusters/agent/)
-- [ ] [Set up protected environments](https://docs.gitlab.com/ee/ci/environments/protected_environments.html)
+HEV-Hybrid electric vehicles had on average the fastest speed of 43.42 km per hour.
 
-***
+#### Query Using Sampling
+I used sampling to select approximately 20% of the data using the `RAND()` function. The query found the average speed for each day of the week in the sampled data.
 
-# Editing this README
+Results:
 
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thank you to [makeareadme.com](https://www.makeareadme.com/) for this template.
+DayNum (range), Avg_Speed
 
-## Suggestions for a good README
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
+From the sample, vehicles drove on average the fastest on Day No. 3-4, representing Wednesday.
 
-## Name
-Choose a self-explaining name for your project.
-
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
-
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
-
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
-
-## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
-
-## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
-
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
-
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
-
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
-
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
-
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
-
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
-
-## License
-For open source projects, say how it is licensed.
-
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
+*See full documented code for all queries in Hive and Pig files attached*
+*More detailed screenshots of results available [here](https://drive.google.com/drive/folders/1Ti49jqmUXXavU4kFZC68i-H7X_hOXnmK?usp=sharing)*
