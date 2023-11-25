@@ -16,37 +16,21 @@ Static data was processed using a similar approach. The two static_data Excel fi
 ### Simple Pig & Hive Queries
 I performed basic Pig & Hive queries on the cleaned data using `PIG_queries.pig` and `Simple_Hive_queries.hql` files. Two queries were executed for both Pig and Hive to calculate the max and average speed for each car in descending order.
 
-(a) Pig query results | (b) Hive query results
---- | ---
-VehID, Max_Speed | VehID, Max_Speed
-... | ...
 The fastest speed recorded was 146 km per hour by Vehicle number 203, an automatic ICE petrol/diesel vehicle.
 
 ### Complex Hive Queries
 #### Query with Aggregate Function
 I calculated the total vehicle auxiliary power used for air conditioning and heating in watts for each car for the month of Nov in descending order using the Hive SUM() function.
 
-Top 5 results:
-
-VehID, total_power_consumption
-
 Vehicle No. 455, an EV, expended the most power on Air conditioning and heating, 1.822045E7 watts.
 
 #### Query using JOIN Statement
 I performed a join on the `cleaned_dynamic` data table and `cleaned_static` data table to compare the average speed of four different engine types: ICE, EV, PHEV, and HEV.
 
-Results:
-
-Eng_type, Avg_Speed, Fuel_LperH
-
 HEV-Hybrid electric vehicles had on average the fastest speed of 43.42 km per hour.
 
 #### Query Using Sampling
 I used sampling to select approximately 20% of the data using the `RAND()` function. The query found the average speed for each day of the week in the sampled data.
-
-Results:
-
-DayNum (range), Avg_Speed
 
 From the sample, vehicles drove on average the fastest on Day No. 3-4, representing Wednesday.
 
